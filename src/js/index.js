@@ -41,14 +41,7 @@ dom.addAction('click', "addnewIng", () => {
 });
 
 dom.addAction('click', "deletbnt", async () => {
-    const request = await req.url("info/get/pratos")
-        .get()
-        .cors()
-        .arrayReturn()
-    .send();
-    req.clear()
-    const pratos = request;
-    showDeleteModal(pratos);
+    await renderinfoPrato()
 });
 
 document.getElementById("formularioPrato").addEventListener("submit", async (event) => {
@@ -136,6 +129,19 @@ function render(elements) {
         actionsCell.appendChild(deleteButton);
         actionsCell.appendChild(updateButton);
     });
+}
+
+async function renderinfoPrato(){
+    const pratoReq = new Request("http://localhost:8080/");
+    const data = await pratoReq.url("info/get/pratos")
+        .get()
+        .cors()
+    .send();
+
+    pratoReq.clear()
+
+    const pratos = data.pratos;
+    showDeleteModal(pratos);
 }
 
 function updatePedido(id){
