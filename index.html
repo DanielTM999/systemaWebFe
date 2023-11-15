@@ -18,12 +18,12 @@
         </button>
 
        
-        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#pedidoModal">
+        <button type="button" id="addpditobnt" class="btn btn-info" data-toggle="modal" data-target="#pedidoModal">
             Adicionar Novo Pedido
         </button>
 
         <button id="deletbnt" type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">
-            Deletar Prato
+            Deletar/Info Prato
         </button>
 
 
@@ -36,9 +36,7 @@
                     <th>Ações</th>
                 </tr>
             </thead>
-            <tbody id="listaPedidos">
-                
-            </tbody>
+            <tbody id="listaPedidos"></tbody>
         </table>
 
     </div>
@@ -61,7 +59,7 @@
                         <div class="form-group">
                             <label for="tipoPrato">Tipo de Prato:</label>
                             <select class="form-control" id="tipoPrato" required>
-                                <option value="teste">teste</option>
+                                <option value="default">"@{default Value}"</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -70,8 +68,10 @@
                                
                             </ul>
                             <button type="button" class="btn btn-secondary" id="addnewIng">Adicionar Ingrediente</button>
+                            <button type="button" class="btn btn-danger" id="removerIngredientes">remover</button>
                         </div>
                         <button type="submit" class="btn btn-primary">Adicionar Prato</button>
+                        <button type="reset" class="btn btn-warning">Limpar</button>
                     </form>
                 </div>
             </div>
@@ -80,14 +80,45 @@
 
 
     <div class="modal fade" id="pedidoModal" tabindex="-1" role="dialog" aria-labelledby="pedidoModalLabel" aria-hidden="true">
-        
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pedidoModalLabel">Adicionar Novo Pedido</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="formularioPedido" method="post">
+                        <div class="form-group">
+                            <label for="selectTypePratos">Selecione um tipo de Prato:</label>
+                            <select class="form-control" id="selectTypePratos" required>
+                                
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="selectPratos">Selecione um Prato:</label>
+                            <select class="form-control" id="selectPratos" required>
+                               
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn-warning" id="adicionarItenBtn">Adicionar Item Ao Pedido</button>
+                        
+                        <button type="button" class="btn btn-danger" id="removerIten">remover</button>
+                       
+                        <div id="itensAdicionados"></div>
+                        <button type="button" class="btn btn-warning" id="confirmarPedidoBtn">Confirmar Pedido</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="pedidoModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="pedidoModalLabel">Deletar Prato</h5>
+                    <h5 class="modal-title" id="pedidoModalLabel">Deletar/Info</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>

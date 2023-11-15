@@ -1,6 +1,11 @@
-const ids = ["listaPedidos", "addnewIng", "deletbnt"];
+const ids = [
+    "listaPedidos", "addnewIng", "deletbnt", "addpditobnt",
+    "selectTypePratos", "adicionarItenBtn", "selectPratos",
+    "removerIten", "confirmarPedidoBtn", "removerIngredientes"
+];
 const dom = new DomMaster(ids, new Log());
 const req = new Request("http://localhost:8080/");
+let pedidosList = [];
 
 const listaPedidos = [
     {
@@ -11,30 +16,8 @@ const listaPedidos = [
             { "tipo": "principal", "descricao": "Filé Mignon Grelhado" },
             { "tipo": "sobremesa", "descricao": "Pudim" }
         ]
-    },
-    {
-        "id": 2,
-        "data": "2023-11-13",
-        "itens": [
-            { "tipo": "entrada", "descricao": "Bruschetta" },
-            { "tipo": "principal", "descricao": "Risoto de Cogumelos" },
-            { "tipo": "sobremesa", "descricao": "Tiramisu" }
-        ]
-    },
-    {
-        "id": 3,
-        "data": "2023-11-14",
-        "itens": [
-            { "tipo": "entrada", "descricao": "Carpaccio" },
-            { "tipo": "principal", "descricao": "Salmão ao Molho de Maracujá" },
-            { "tipo": "sobremesa", "descricao": "Cheesecake de Frutas Vermelhas" },
-            { "tipo": "entrada", "descricao": "Carpaccio" },
-            { "tipo": "principal", "descricao": "Salmão ao Molho de Maracujá" },
-            { "tipo": "sobremesa", "descricao": "Cheesecake de Frutas Vermelhas" }
-        ]
     }
 ];
-
 
 dom.addAction('click', "addnewIng", () => {
     adicionarIngrediente();
@@ -42,6 +25,49 @@ dom.addAction('click', "addnewIng", () => {
 
 dom.addAction('click', "deletbnt", async () => {
     await renderinfoPrato()
+});
+
+dom.addAction('click', "addpditobnt", async () => {
+    var element = dom.get("selectTypePratos")
+    var selectedValue = element.options[element.selectedIndex].value;
+    await getPratosByType(selectedValue);
+});
+
+dom.addAction('change', "selectTypePratos", async () => {
+    var element = dom.get("selectTypePratos")
+    var selectedValue = element.options[element.selectedIndex].value;
+    await getPratosByType(selectedValue);
+});
+
+dom.addAction('click', "adicionarItenBtn", () => {
+    var element = dom.get("selectTypePratos")
+    var selectedValue = element.options[element.selectedIndex].value;
+
+    var elementprato = dom.get("selectPratos")
+    var selectedValueprato = elementprato.options[elementprato.selectedIndex].value;
+    var nomep = selectedValueprato.match(/^(\d+)\/(.+)$/);
+    const dados = {
+        type: selectedValue,
+        name: nomep[2],
+        id: nomep[1]
+    }
+
+    pedidosList.push(dados)
+
+    renderItensAdicionados(pedidosList);
+});
+
+dom.addAction('click', "removerIten", () => {
+    pedidosList.pop();
+    renderItensAdicionados(pedidosList);
+});
+
+dom.addAction('click', "confirmarPedidoBtn", () => {
+    console.log(pedidosList);
+});
+
+dom.addAction('click', "removerIngredientes", () => {
+    removerIngrediente()
 });
 
 document.getElementById("formularioPrato").addEventListener("submit", async (event) => {
@@ -81,12 +107,22 @@ async function PratosType(){
 
     const types = data.types;
     const selectElement = document.getElementById("tipoPrato");
+    const selectElementNewP = document.getElementById("selectTypePratos");
+
     selectElement.innerHTML = ""
     types.forEach(type => {
         const option = document.createElement("option");
         option.value = type;
         option.text = type;
         selectElement.add(option);
+    });
+
+    selectElementNewP.innerHTML = ""
+    types.forEach(type => {
+        const option = document.createElement("option");
+        option.value = type;
+        option.text = type;
+        selectElementNewP.add(option);
     });
 
     req.clear()
@@ -158,6 +194,15 @@ function adicionarIngrediente() {
     document.getElementById("listaIngredientes").appendChild(novoIngrediente);
 }
 
+function removerIngrediente() {
+    var listaIngredientes = document.getElementById("listaIngredientes");
+    var ultimosIngredientes = listaIngredientes.getElementsByTagName("li");
+    
+    if (ultimosIngredientes.length > 0) {
+        listaIngredientes.removeChild(ultimosIngredientes[ultimosIngredientes.length - 1]);
+    }
+}
+
 function showDeleteModal(pratos) {
     const deleteModal = $('#deleteModal');
     const modalBody = deleteModal.find('#deletePratoBody');
@@ -194,6 +239,45 @@ function deletePrato(id){
         .noReturn()
     .send();
     $('#deleteModal').modal('hide');
+}
+
+function renderItensAdicionados(object) {
+
+    var itensAdicionadosDiv = document.getElementById("itensAdicionados");
+    itensAdicionadosDiv.innerHTML = "";
+    object.forEach(element => {
+        var type = element.type
+        var nome = element.name
+        var paragrafo = document.createElement("p");
+        paragrafo.textContent = type + ": " + nome;
+        itensAdicionadosDiv.appendChild(paragrafo);
+    });
+}
+
+async function getPratosByType(type){
+    const pratoReq = new Request("http://localhost:8080/");
+    const data = await pratoReq.url("info/get/pratos/bytype/"+type)
+        .get()
+        .cors()
+    .send();
+
+    const pratos = data.pratos;
+    renderpratosSelect(pratos)
+}
+
+function renderpratosSelect(list){
+    if(!Array.isArray(list)){
+        throw new Error("A lista não é um array!");
+    }
+
+    var selectElement = document.getElementById("selectPratos");
+    selectElement.innerHTML = '';
+    list.forEach(element => {
+        var option = document.createElement("option");
+        option.value = element.id+"/"+element.nome;  
+        option.text = element.nome;   
+        selectElement.add(option);
+    });
 }
 
 
