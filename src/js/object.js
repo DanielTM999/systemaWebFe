@@ -42,6 +42,21 @@ class DomMaster {
         this.documento[id].addEventListener(typeEvent, def);
     }
 
+    timerDef(time, def = null, param = null){
+        return new Promise(resolve => {
+            resolve(setTimeout(() => {
+                if (def !== null && typeof def === 'function') {
+                    if(param !== null){
+                        def(param);
+                    }else{
+                        def();
+                    }
+                }
+            }, time));
+        });
+    }
+
+
 }
 
 class Log {
@@ -66,7 +81,10 @@ class Request {
         "headers": {},
         "body": {},
         "return": true,
-        "returnArray": false
+        "returnArray": false,
+        "returnText": false,
+        "StatusCode": false,
+        "origin": false
     }
     #baseUrl = null;
 
@@ -118,6 +136,11 @@ class Request {
         return this;
     }
 
+    StatusCode(){
+        this.#components.StatusCode = true;
+        return this;
+    }
+
     body(object = {}){
         if (typeof object !== 'object' || Array.isArray(object) || object === null) {
             throw new Error('O parâmetro body deve ser um objeto.');
@@ -145,6 +168,16 @@ class Request {
         return this;
     }
 
+    returnText(){
+        this.#components.returnText = true;
+        return this;
+    }
+
+    origenReq(){
+        this.#components.origin = true;
+        return this;
+    }
+
     clear(){
         this.#components = {
             "url": null,
@@ -153,7 +186,9 @@ class Request {
             "headers": {},
             "body": {},
             "return": true,
-            "returnArray": false
+            "returnArray": false,
+            "returnText": false,
+            "StatusCode": false
         }
 
     }
@@ -171,12 +206,20 @@ class Request {
                 headers: this.#components.headers,
             });
 
+            if(this.#components.origin){
+                return data;
+            }
+
             if(this.#components.return){
                 if(this.#components.returnArray){
                     return JSON.parse(await data.text());
+                }else if(this.#components.StatusCode){
+                    return data.status
+                }else if(this.#components.returnText){
+                    return await data.text();
+                }else{
+                    return await data.json();
                 }
-
-                return await data.json();
             }
         }else{
             const data = await fetch(url, {
@@ -186,12 +229,21 @@ class Request {
                 body: JSON.stringify(body)
             });
 
+            if(this.#components.origin){
+                return data;
+            }
+
             if(this.#components.return){
                 if(this.#components.returnArray){
                     return JSON.parse(await data.text());
+                }else if(this.#components.StatusCode){
+                    return data.status
+                }else if(this.#components.returnText){
+                    return await data.text();
+                }else{
+                    return await data.json();
                 }
 
-                return await data.json();
             }
         }
 

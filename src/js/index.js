@@ -1,23 +1,16 @@
 const ids = [
     "listaPedidos", "addnewIng", "deletbnt", "addpditobnt",
     "selectTypePratos", "adicionarItenBtn", "selectPratos",
-    "removerIten", "confirmarPedidoBtn", "removerIngredientes"
+    "removerIten", "confirmarPedidoBtn", "removerIngredientes",
+    "formularioPrato"
 ];
 const dom = new DomMaster(ids, new Log());
 const req = new Request("http://localhost:8080/");
 let pedidosList = [];
 
-const listaPedidos = [
-    {
-        "id": 1,
-        "data": "2023-11-12",
-        "itens": [
-            { "tipo": "entrada", "descricao": "Salada de Folhas Verdes" },
-            { "tipo": "principal", "descricao": "Filé Mignon Grelhado" },
-            { "tipo": "sobremesa", "descricao": "Pudim" }
-        ]
-    }
-];
+window.addEventListener("DOMContentLoaded", async () => {
+    await getAllPedidos();
+})
 
 dom.addAction('click', "addnewIng", () => {
     adicionarIngrediente();
@@ -63,14 +56,14 @@ dom.addAction('click', "removerIten", () => {
 });
 
 dom.addAction('click', "confirmarPedidoBtn", () => {
-    console.log(pedidosList);
+    newPedido(pedidosList);
 });
 
 dom.addAction('click', "removerIngredientes", () => {
     removerIngrediente()
 });
 
-document.getElementById("formularioPrato").addEventListener("submit", async (event) => {
+dom.addAction('submit', "formularioPrato", async (event) => {
     event.preventDefault();
     var nomePrato = document.getElementById("nomePrato").value;
     var tipoPrato = document.getElementById("tipoPrato").value;
@@ -86,24 +79,33 @@ document.getElementById("formularioPrato").addEventListener("submit", async (eve
         ingredientes: listaIngredientes
     }
 
-    req.url("add/prato")
+    const status = await req.url("add/prato")
         .post()
         .json()
         .cors()
         .body(dto)
-        .noReturn()
+        .origenReq()
     .send()
 
     req.clear()
+    if(status.status === 400){
+        var string = await status.text();
+        exibirErro(string, "erroSectionprato");
+        dom.timerDef(3500, ocultarErro, "erroSectionprato");
+    }else{
+        $('#pratoModal').modal('hide');
+    }
 
-    $('#pratoModal').modal('hide');
-});
 
-async function PratosType(){
+
+})
+
+
+async function PratosType() {
     const data = await req.url("info/getTypes/prato")
         .get()
         .cors()
-    .send();
+        .send();
 
     const types = data.types;
     const selectElement = document.getElementById("tipoPrato");
@@ -138,8 +140,8 @@ function render(elements) {
         const row = listaPedidosElement.insertRow();
         const idCell = row.insertCell(0);
         const dataCell = row.insertCell(1);
-        const itensCell = row.insertCell(2); 
-        const actionsCell = row.insertCell(3); 
+        const itensCell = row.insertCell(2);
+        const actionsCell = row.insertCell(3);
 
         idCell.textContent = element.id;
         dataCell.textContent = element.data;
@@ -155,7 +157,9 @@ function render(elements) {
         const deleteButton = document.createElement('button');
         deleteButton.textContent = 'Deletar';
         deleteButton.classList.add('btn', 'btn-danger', 'mr-1');
-        deleteButton.addEventListener('click', () => deletePedido(element.id));
+        deleteButton.addEventListener('click', async () => {
+            await deletePedido(element.id);
+        })
 
         const updateButton = document.createElement('button');
         updateButton.textContent = 'Alterar';
@@ -167,12 +171,12 @@ function render(elements) {
     });
 }
 
-async function renderinfoPrato(){
+async function renderinfoPrato() {
     const pratoReq = new Request("http://localhost:8080/");
     const data = await pratoReq.url("info/get/pratos")
         .get()
         .cors()
-    .send();
+        .send();
 
     pratoReq.clear()
 
@@ -180,12 +184,21 @@ async function renderinfoPrato(){
     showDeleteModal(pratos);
 }
 
-function updatePedido(id){
+function updatePedido(id) {
     console.log(id);
 }
 
-function deletePedido(id){
-    console.log(id);
+async function deletePedido(id) {
+    req.clear();
+    await req.url("delete/pedido/" + id)
+        .delete()
+        .json()
+        .cors()
+        .noReturn()
+        .send();
+
+    await getAllPedidos()
+
 }
 
 function adicionarIngrediente() {
@@ -197,7 +210,7 @@ function adicionarIngrediente() {
 function removerIngrediente() {
     var listaIngredientes = document.getElementById("listaIngredientes");
     var ultimosIngredientes = listaIngredientes.getElementsByTagName("li");
-    
+
     if (ultimosIngredientes.length > 0) {
         listaIngredientes.removeChild(ultimosIngredientes[ultimosIngredientes.length - 1]);
     }
@@ -231,13 +244,13 @@ function showDeleteModal(pratos) {
     });
 }
 
-function deletePrato(id){
-    req.url("delete/prato/"+id)
+function deletePrato(id) {
+    req.url("delete/prato/" + id)
         .delete()
         .json()
         .cors()
         .noReturn()
-    .send();
+        .send();
     $('#deleteModal').modal('hide');
 }
 
@@ -254,19 +267,19 @@ function renderItensAdicionados(object) {
     });
 }
 
-async function getPratosByType(type){
+async function getPratosByType(type) {
     const pratoReq = new Request("http://localhost:8080/");
-    const data = await pratoReq.url("info/get/pratos/bytype/"+type)
+    const data = await pratoReq.url("info/get/pratos/bytype/" + type)
         .get()
         .cors()
-    .send();
+        .send();
 
     const pratos = data.pratos;
     renderpratosSelect(pratos)
 }
 
-function renderpratosSelect(list){
-    if(!Array.isArray(list)){
+function renderpratosSelect(list) {
+    if (!Array.isArray(list)) {
         throw new Error("A lista não é um array!");
     }
 
@@ -274,13 +287,62 @@ function renderpratosSelect(list){
     selectElement.innerHTML = '';
     list.forEach(element => {
         var option = document.createElement("option");
-        option.value = element.id+"/"+element.nome;  
-        option.text = element.nome;   
+        option.value = element.id + "/" + element.nome;
+        option.text = element.nome;
         selectElement.add(option);
     });
 }
 
+async function newPedido(pedidos) {
+    req.clear()
+    const dto = {
+        pedidos: pedidos
+    }
 
-render(listaPedidos);
+    const data = await req.url("add/pedido")
+        .post()
+        .json()
+        .cors()
+        .body(dto)
+        .origenReq()
+    .send();
+
+    if(data.status === 400){
+        var string = await data.text();
+        exibirErro(string, "erroSection");
+        dom.timerDef(3500, ocultarErro, "erroSection")
+    }else{
+        await getAllPedidos();
+        $('#pedidoModal').modal('hide');
+    }
+
+}
+
+async function getAllPedidos() {
+    const pratoReq = new Request("http://localhost:8080/");
+    const data = await pratoReq.url("info/get/pedidos")
+        .get()
+        .cors()
+        .send();
+
+    pratoReq.clear()
+
+    const pedidosList = data.listaPedidos;
+    render(pedidosList);
+}
+
+function exibirErro(mensagem, id) {
+    var erroSection = document.getElementById(id);
+    erroSection.innerHTML = mensagem;
+    erroSection.style.display = "block";
+}
+
+function ocultarErro(id) {
+    var erroSection = document.getElementById(id);
+    erroSection.innerHTML = "";
+    erroSection.style.display = "none";
+}
+
+
 PratosType();
 
