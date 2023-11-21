@@ -184,7 +184,12 @@ async function renderinfoPrato() {
     showDeleteModal(pratos);
 }
 
-function updatePedido(id) {
+async function updatePedido(id) {
+    req.clear()
+
+    const data = await req.url("info/get/comanda/byid/"+id)
+
+
     console.log(id);
     $('#alterModal').modal('show');
 }
