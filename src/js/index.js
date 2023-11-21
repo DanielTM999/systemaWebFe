@@ -186,6 +186,7 @@ async function renderinfoPrato() {
 
 function updatePedido(id) {
     console.log(id);
+    $('#alterModal').modal('show');
 }
 
 async function deletePedido(id) {
