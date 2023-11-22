@@ -151,8 +151,9 @@ dom.addAction("click", "alterarbnt", async () => {
             .cors()
             .body(pedidosAlterList)
             .origenReq()
-        .send()
-
+        .send();
+        clearLIsta("selectTypePratosAlter");
+        clearLIsta("selectPratosAlter");
         pedidosAlterList = null;
         idsRem = [];
     } catch (error) {
@@ -501,6 +502,9 @@ async function updateWithAdd(){
     }
 }
 
+function clearLIsta(element){
+    document.getElementById(element).innerHTML = '';
+}
 
 PratosType();
 
