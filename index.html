@@ -136,14 +136,33 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="pedidoModalLabel">Alterar pedido ${?}</h5>
+                    <h5 class="modal-title" id="pedidoModalLabelalter">Alterar pedido ${?}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body" id="alterarPratoBody">
-                   
+                    <ul class="list-group" id="listaItensAlterar">
+                        
+                    </ul>
+                    <div class="form-group">
+                        <label for="selectTypePratos">Selecione um tipo de Prato:</label>
+                        <select class="form-control" id="selectTypePratosAlter" required>
+                            
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="selectPratos">Selecione um Prato:</label>
+                        <select class="form-control" id="selectPratosAlter" required>
+                           
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-warning" id="addnwitenAlter">Adição de Pedido</button>
+                    <button type="button" class="btn btn-danger" id="removerItenAlter">remover</button>
+                    <div id="itensAdicionadosAlter"></div>
+                    <button type="button" class="btn btn-warning" id="alterarbnt">Confirmar Alteração do Pedido</button>
                 </div>
+                
             </div>
         </div>
     </div>
